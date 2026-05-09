@@ -72,14 +72,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Canva Design Coach" },
+      { name: "description", content: "PM Delivery Final Project" },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Canva Design Coach" },
+      { property: "og:description", content: "PM Delivery Final Project" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Canva Design Coach" },
+      { name: "twitter:description", content: "PM Delivery Final Project" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ce5033f5-02ad-40b3-8b3b-00e86b8b7f56/id-preview-d900e76b--0badcbf7-ca3a-4d23-b34c-c991f6c1d32c.lovable.app-1778353735079.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ce5033f5-02ad-40b3-8b3b-00e86b8b7f56/id-preview-d900e76b--0badcbf7-ca3a-4d23-b34c-c991f6c1d32c.lovable.app-1778353735079.png" },
     ],
     links: [
       {
