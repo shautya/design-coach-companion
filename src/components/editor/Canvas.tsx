@@ -41,14 +41,14 @@ export function Canvas({
     hadSnappedRef.current = page.hadSnapped;
   }, [page.id]);
 
-  // report logo rect
+  // report logo rect when position/selection changes
   useEffect(() => {
     if (selected && logoRef.current) {
       onLogoRect(logoRef.current.getBoundingClientRect());
     } else {
       onLogoRect(null);
     }
-  });
+  }, [selected, pos.x, pos.y, page.id, dragging]);
 
   const inZone = (x: number, y: number) =>
     Math.hypot(x - SNAP_X, y - SNAP_Y) <= SNAP_RADIUS;
