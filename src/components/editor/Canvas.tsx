@@ -157,7 +157,7 @@ export function Canvas({
       <div
         ref={logoRef}
         onMouseDown={onMouseDown}
-        className={`absolute flex items-center justify-center text-white font-bold text-sm select-none cursor-move rounded-md ${
+        className={`absolute flex items-center justify-center select-none cursor-move ${
           selected ? "ring-2 ring-[#00C4CC]" : ""
         }`}
         style={{
@@ -165,7 +165,12 @@ export function Canvas({
           top: pos.y,
           width: LOGO_W,
           height: LOGO_H,
-          background: "linear-gradient(135deg,#7D2AE8,#00C4CC)",
+          background: "#E5E5E5",
+          border: "1px solid #CCCCCC",
+          borderRadius: 6,
+          color: "#333333",
+          fontSize: 14,
+          fontWeight: 600,
           transition: snapping ? "left 150ms ease-out, top 150ms ease-out" : undefined,
         }}
       >
@@ -174,8 +179,14 @@ export function Canvas({
 
       {offGridLabel && (
         <div
-          className="absolute pointer-events-none text-[11px] text-[#666] animate-fade-in"
-          style={{ left: offGridLabel.x, top: offGridLabel.y + LOGO_H + 4 }}
+          className="absolute pointer-events-none italic"
+          style={{
+            left: offGridLabel.x + LOGO_W + 6,
+            top: offGridLabel.y + LOGO_H / 2 - 7,
+            fontSize: 11,
+            color: "#666",
+            animation: "fade-in 150ms ease-out, fade-out 200ms ease-in 600ms forwards",
+          }}
         >
           off-grid
         </div>
