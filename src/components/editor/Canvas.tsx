@@ -88,7 +88,7 @@ export function Canvas({
             hadSnappedRef.current = false;
             onSnapRelease();
             setOffGridLabel({ x: p.x, y: p.y });
-            setTimeout(() => setOffGridLabel(null), 1000);
+            setTimeout(() => setOffGridLabel(null), 800);
           }
           onLogoMove(p);
           return p;
