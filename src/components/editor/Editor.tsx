@@ -155,7 +155,21 @@ export function Editor() {
               }`}
             >
               <div className="aspect-[3/2] bg-white relative p-2">
-                <div className="w-6 h-3 rounded-sm bg-gradient-to-br from-[#7D2AE8] to-[#00C4CC]" />
+                <div
+                  className="flex items-center justify-center"
+                  style={{
+                    width: 24,
+                    height: 12,
+                    background: "#E5E5E5",
+                    border: "1px solid #CCCCCC",
+                    borderRadius: 2,
+                    fontSize: 6,
+                    fontWeight: 600,
+                    color: "#333333",
+                  }}
+                >
+                  LOGO
+                </div>
                 <div className="absolute left-2 right-2 top-7">
                   <div className="text-[8px] font-bold text-gray-900 leading-tight truncate">{p.heading}</div>
                   <div className="text-[6px] text-gray-500 mt-0.5 truncate">{p.subheading}</div>
