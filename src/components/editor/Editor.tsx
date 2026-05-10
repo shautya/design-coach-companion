@@ -228,7 +228,22 @@ export function Editor() {
         </aside>
 
         {/* Canvas area */}
-        <main className="flex-1 flex items-center justify-center overflow-auto p-6">
+        <main className="flex-1 flex items-center justify-center overflow-auto p-6 relative">
+          {visibleChipPages.length >= 2 && (
+            <button
+              onClick={applyAll}
+              className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 text-white text-sm font-semibold animate-[chip-in_250ms_ease-out]"
+              style={{
+                background: "#00C4CC",
+                borderRadius: 24,
+                padding: "12px 20px",
+                boxShadow: "0 6px 20px rgba(0,196,204,0.35)",
+              }}
+            >
+              <Sparkles className="w-4 h-4" />
+              Apply all {visibleChipPages.length} suggestions
+            </button>
+          )}
           <Canvas
             key={activePage.id}
             page={activePage}
@@ -239,6 +254,8 @@ export function Editor() {
             onSnapped={handleSnapped}
             gridLocked={gridLocked}
             onLogoRect={setLogoRect}
+            onChipApply={() => applyChip(activeId)}
+            onChipIgnore={() => ignoreChip(activeId)}
           />
         </main>
 
