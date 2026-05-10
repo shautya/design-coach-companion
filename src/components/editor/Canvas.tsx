@@ -13,10 +13,12 @@ interface Props {
   onLogoRect: (rect: DOMRect | null) => void;
   onChipApply: () => void;
   onChipIgnore: () => void;
+  trail?: { fromX: number; toX: number; key: number } | null;
 }
 
 const LOGO_W = 120;
 const LOGO_H = 60;
+const HEADING_Y = 140;
 
 export function Canvas({
   page,
@@ -29,6 +31,7 @@ export function Canvas({
   onLogoRect,
   onChipApply,
   onChipIgnore,
+  trail,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
@@ -41,8 +44,9 @@ export function Canvas({
   const hadSnappedRef = useRef(page.hadSnapped);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [headingW, setHeadingW] = useState(0);
+  const [hoveredCol, setHoveredCol] = useState<number | null>(null);
+  const [chipHover, setChipHover] = useState(false);
 
-  // sync when page changes
   useEffect(() => {
     setPos(page.logoPos);
     hadSnappedRef.current = page.hadSnapped;
@@ -52,7 +56,6 @@ export function Canvas({
     if (headingRef.current) setHeadingW(headingRef.current.offsetWidth);
   }, [page.heading, page.headingX]);
 
-  // report logo rect when position/selection changes
   useEffect(() => {
     if (selected && logoRef.current) {
       onLogoRect(logoRef.current.getBoundingClientRect());
@@ -115,26 +118,70 @@ export function Canvas({
   }, [dragging]);
 
   const guideActive = inSnapZone && dragging;
+  // Column the heading is closest to (1..12, lines at x=60..720)
+  const headingCol = Math.max(1, Math.min(12, Math.round((page.headingX || 1) / 60)));
+  const showHeadingOutline = chipHover && page.chipState === "visible";
 
   return (
-    <div
-      ref={canvasRef}
-      className="relative bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-md"
-      style={{ width: 720, height: 480 }}
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onSelect();
-      }}
-    >
+    <div className="relative" style={{ width: 720 }}>
+      {/* Column number row above canvas */}
+      {gridLocked && (
+        <div className="absolute left-0 right-0 pointer-events-none" style={{ top: -22, height: 16 }}>
+          {Array.from({ length: 12 }).map((_, i) => {
+            const num = i + 1;
+            const x = (num) * 60;
+            const active = hoveredCol === num;
+            return (
+              <div
+                key={num}
+                className="absolute -translate-x-1/2 flex items-center justify-center transition-all"
+                style={{
+                  left: x,
+                  top: 0,
+                  minWidth: 16,
+                  height: 16,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: active ? "#FFFFFF" : "#00C4CC",
+                  background: active ? "#00C4CC" : "transparent",
+                  borderRadius: 4,
+                  padding: "0 4px",
+                }}
+              >
+                {num}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div
+        ref={canvasRef}
+        className="relative bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-md"
+        style={{ width: 720, height: 480 }}
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) onSelect();
+        }}
+      >
       {/* Grid lines */}
       {gridLocked && (
         <div className="absolute inset-0 pointer-events-none">
-          {Array.from({ length: 13 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute top-0 bottom-0 border-l border-dashed"
-              style={{ left: `${(i / 12) * 100}%`, borderColor: "#00C4CC", opacity: 0.25 }}
-            />
-          ))}
+          {Array.from({ length: 12 }).map((_, i) => {
+            const num = i + 1;
+            const x = num * 60;
+            const active = hoveredCol === num;
+            return (
+              <div
+                key={num}
+                className="absolute top-0 bottom-0 transition-opacity"
+                style={{
+                  left: x,
+                  borderLeft: `1.5px dashed #00C4CC`,
+                  opacity: active ? 1 : 0.5,
+                }}
+              />
+            );
+          })}
         </div>
       )}
 
@@ -203,14 +250,37 @@ export function Canvas({
         </div>
       )}
 
+      {/* Trail */}
+      {trail && (
+        <div
+          key={trail.key}
+          className="absolute pointer-events-none"
+          style={{
+            left: Math.min(trail.fromX, trail.toX),
+            top: HEADING_Y + 18,
+            width: Math.abs(trail.toX - trail.fromX) + 4,
+            height: 4,
+            borderRadius: 2,
+            background: "linear-gradient(90deg, rgba(0,196,204,0.0), rgba(0,196,204,0.9), rgba(0,196,204,0.0))",
+            boxShadow: "0 0 12px rgba(0,196,204,0.7)",
+            animation: "trail-fade 700ms ease-out forwards",
+          }}
+        />
+      )}
+
       {/* Text content */}
       <h1
         ref={headingRef}
+        onMouseEnter={() => gridLocked && setHoveredCol(headingCol)}
+        onMouseLeave={() => setHoveredCol(null)}
         className="absolute text-4xl font-bold text-gray-900"
         style={{
           left: page.headingX,
-          top: 140,
-          transition: "left 300ms ease-in-out",
+          top: HEADING_Y,
+          transition: "left 400ms ease-out",
+          outline: showHeadingOutline ? "2px dashed #00C4CC" : undefined,
+          outlineOffset: showHeadingOutline ? 4 : undefined,
+          padding: 2,
         }}
       >
         {page.heading}
@@ -223,19 +293,20 @@ export function Canvas({
       {/* Smart Align chip */}
       {page.chipState === "visible" && headingW > 0 && (
         <div
+          onMouseEnter={() => setChipHover(true)}
+          onMouseLeave={() => setChipHover(false)}
           className="absolute z-20 bg-white flex items-center gap-2"
           style={{
-            left: page.headingX + headingW + 8,
+            left: page.headingX + headingW + 12,
             top: 152,
-            border: "1px solid #E5E5E5",
-            borderRadius: 8,
-            padding: "8px 12px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-            animation: "chip-in 250ms ease-out both",
-            transition: "left 300ms ease-in-out",
+            border: "1px solid #B8EEF1",
+            borderRadius: 10,
+            padding: "10px 14px",
+            animation: "chip-in 250ms ease-out both, chip-glow 2.5s ease-in-out 250ms infinite",
+            transition: "left 400ms ease-out",
           }}
         >
-          <Sparkles className="w-3 h-3 text-[#00C4CC]" />
+          <Sparkles className="w-3.5 h-3.5 text-[#00C4CC]" />
           <span className="text-[12px]" style={{ color: "#333" }}>Snap to column 1?</span>
           <button
             onClick={onChipApply}
@@ -259,7 +330,7 @@ export function Canvas({
         <div
           className="absolute z-20 pointer-events-none flex items-center justify-center"
           style={{
-            left: page.headingX + headingW + 8,
+            left: page.headingX + headingW + 12,
             top: 152,
             width: 24,
             height: 24,
@@ -271,6 +342,7 @@ export function Canvas({
           <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
         </div>
       )}
+      </div>
     </div>
   );
 }

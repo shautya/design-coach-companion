@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Undo2, Redo2, ZoomIn, ZoomOut, Share2, Type, Image as ImageIcon,
-  Shapes, LayoutTemplate, Upload, Sparkles, Search, Check,
+  Shapes, LayoutTemplate, Upload, Sparkles, Search, Loader2,
 } from "lucide-react";
 import { Canvas } from "./Canvas";
 import { CoachCard } from "./CoachCard";
@@ -9,6 +9,8 @@ import { ProModal } from "./ProModal";
 import { TutorialOverlay } from "./TutorialOverlay";
 import { DemoControls } from "./DemoControls";
 import { COL1_X, initialPages, PageData, PageId } from "./types";
+
+type Trail = { fromX: number; toX: number; key: number };
 
 export function Editor() {
   const [pages, setPages] = useState<PageData[]>(initialPages);
@@ -23,23 +25,13 @@ export function Editor() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [gridLocked, setGridLocked] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [milestoneToast, setMilestoneToast] = useState<string | null>(null);
   const [logoRect, setLogoRect] = useState<DOMRect | null>(null);
-  const [proBadge, setProBadge] = useState(false);
-  const [showProPopover, setShowProPopover] = useState(false);
+  const [trails, setTrails] = useState<Record<PageId, Trail | null>>({ 1: null, 2: null, 3: null });
+  const [flashThumb, setFlashThumb] = useState<Record<PageId, boolean>>({ 1: false, 2: false, 3: false });
+  const [isApplying, setIsApplying] = useState(false);
+  const [hideApplyBtn, setHideApplyBtn] = useState(false);
   const triggeredRef = useRef(false);
-  const proPopRef = useRef<HTMLDivElement>(null);
-
-  // outside-click for pro popover
-  useEffect(() => {
-    if (!showProPopover) return;
-    const onDown = (e: MouseEvent) => {
-      if (proPopRef.current && !proPopRef.current.contains(e.target as Node)) {
-        setShowProPopover(false);
-      }
-    };
-    window.addEventListener("mousedown", onDown);
-    return () => window.removeEventListener("mousedown", onDown);
-  }, [showProPopover]);
 
   const activePage = pages.find((p) => p.id === activeId)!;
 
@@ -83,11 +75,7 @@ export function Editor() {
     setShowTutorial(false);
     setGridLocked(true);
     setToast("You just set up a custom grid system across 3 pages. That's how design teams keep brand decks consistent.");
-    // Pro Mode badge fades in as the toast appears
-    setTimeout(() => setProBadge(true), 200);
-    // Toast fades out at ~4000ms; chips begin appearing as it fades
     setTimeout(() => setToast(null), 4000);
-    // Stagger chips: page1 immediately as toast fades, page2 +100ms, page3 +200ms
     [1, 2, 3].forEach((id, i) => {
       setTimeout(() => {
         setPages((prev) => prev.map((p) => (p.id === id && p.chipState === "hidden" ? { ...p, chipState: "visible" } : p)));
@@ -95,12 +83,25 @@ export function Editor() {
     });
   };
 
-  const applyChip = (id: PageId) => {
-    setPages((prev) => prev.map((p) => (p.id === id ? { ...p, headingX: COL1_X, chipState: "applied", showCheck: true } : p)));
+  const applyChipWithTrail = (id: PageId) => {
+    setPages((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        const fromX = p.headingX;
+        const toX = COL1_X;
+        if (fromX !== toX) {
+          setTrails((t) => ({ ...t, [id]: { fromX, toX, key: Date.now() + id } }));
+          setTimeout(() => setTrails((t) => ({ ...t, [id]: null })), 800);
+        }
+        return { ...p, headingX: toX, chipState: "applied", showCheck: true };
+      })
+    );
     setTimeout(() => {
       setPages((prev) => prev.map((p) => (p.id === id ? { ...p, showCheck: false } : p)));
     }, 700);
   };
+
+  const applyChip = (id: PageId) => applyChipWithTrail(id);
 
   const ignoreChip = (id: PageId) => {
     setPages((prev) => prev.map((p) => (p.id === id ? { ...p, chipState: "ignored" } : p)));
@@ -109,9 +110,37 @@ export function Editor() {
   const visibleChipPages = pages.filter((p) => p.chipState === "visible").map((p) => p.id);
 
   const applyAll = () => {
-    visibleChipPages.forEach((id, i) => {
-      setTimeout(() => applyChip(id), i * 200);
+    if (isApplying) return;
+    const ids = [...visibleChipPages];
+    if (ids.length === 0) return;
+    const original = activeId;
+    setIsApplying(true);
+
+    ids.forEach((id, i) => {
+      setTimeout(() => {
+        setActiveId(id);
+        applyChipWithTrail(id);
+      }, i * 400);
     });
+
+    const flashStart = ids.length * 400 + 0;
+    [1, 2, 3].forEach((id, i) => {
+      setTimeout(() => {
+        setFlashThumb((f) => ({ ...f, [id as PageId]: true }));
+        setTimeout(() => setFlashThumb((f) => ({ ...f, [id as PageId]: false })), 400);
+      }, flashStart + i * 50);
+    });
+
+    setTimeout(() => {
+      setMilestoneToast("All 3 pages aligned. You just saved ~12 minutes.");
+      setTimeout(() => setMilestoneToast(null), 5000);
+    }, flashStart + 400);
+
+    setTimeout(() => {
+      setHideApplyBtn(true);
+      setIsApplying(false);
+      setActiveId(original);
+    }, flashStart + 600);
   };
 
   const resetDemo = () => {
@@ -123,8 +152,11 @@ export function Editor() {
     setShowTutorial(false);
     setGridLocked(false);
     setToast(null);
-    setProBadge(false);
-    setShowProPopover(false);
+    setMilestoneToast(null);
+    setTrails({ 1: null, 2: null, 3: null });
+    setFlashThumb({ 1: false, 2: false, 3: false });
+    setIsApplying(false);
+    setHideApplyBtn(false);
     triggeredRef.current = false;
     setActiveId(1);
   };
@@ -135,7 +167,6 @@ export function Editor() {
     setShowCoach(true);
   };
 
-  // Hide coach when triggered alignment can't re-trigger after dismiss; reset trigger ref if reset
   useEffect(() => {
     if (snapCount === 0) triggeredRef.current = false;
   }, [snapCount]);
@@ -157,45 +188,31 @@ export function Editor() {
           <span className="text-xs text-gray-600 w-10 text-center">100%</span>
           <button className="p-1.5"><ZoomIn className="w-4 h-4 text-gray-600" /></button>
         </div>
-        {proBadge && (
-          <div className="relative" ref={proPopRef}>
-            <button
-              onClick={() => setShowProPopover((v) => !v)}
-              className="flex items-center gap-1 text-white text-[12px] font-semibold mr-1"
-              style={{
-                background: "linear-gradient(135deg, #00C4CC, #008A90)",
-                borderRadius: 16,
-                padding: "6px 12px",
-                animation: "badge-in 300ms ease-out",
-              }}
-            >
-              <Sparkles className="w-3 h-3" />
-              Pro Mode
-            </button>
-            {showProPopover && (
-              <div
-                className="absolute right-0 top-full mt-2 z-50 bg-white rounded-lg border border-gray-200 shadow-lg p-3 w-56 animate-[chip-in_200ms_ease-out]"
-              >
-                {[
-                  "Grid lock active",
-                  "Smart align suggestions",
-                  "Multi-page consistency",
-                ].map((t) => (
-                  <div key={t} className="flex items-center gap-2 py-1 text-[13px] text-gray-800">
-                    <Check className="w-3.5 h-3.5 text-[#00C4CC]" strokeWidth={3} />
-                    {t}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
         <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">
           <Share2 className="w-4 h-4" /> Share
         </button>
-        <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white bg-[#7D2AE8] hover:bg-[#6B20D0] rounded-md transition-colors">
-          <Sparkles className="w-4 h-4" /> Pro
-        </button>
+        {!gridLocked ? (
+          <button
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white bg-[#7D2AE8] hover:bg-[#6B20D0] rounded-md transition-opacity duration-200"
+          >
+            <Sparkles className="w-4 h-4" /> Pro
+          </button>
+        ) : (
+          <div
+            className="flex items-center gap-1.5 text-white"
+            style={{
+              background: "linear-gradient(90deg, #00C4CC, #00A8B0)",
+              padding: "8px 16px",
+              borderRadius: 20,
+              fontSize: 13,
+              fontWeight: 600,
+              animation: "badge-in 300ms ease-out, pro-glow 2s ease-in-out 300ms infinite",
+            }}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Pro Mode Active
+          </div>
+        )}
       </header>
 
       <div className="flex-1 flex min-h-0">
@@ -228,9 +245,11 @@ export function Editor() {
             <button
               key={p.id}
               onClick={() => setActiveId(p.id)}
-              className={`w-full text-left rounded-md overflow-hidden border-2 transition-all ${
-                activeId === p.id ? "border-[#00C4CC]" : "border-gray-200 hover:border-gray-300"
-              }`}
+              className={`w-full text-left rounded-md overflow-hidden border-2 transition-all`}
+              style={{
+                borderColor: activeId === p.id ? "#00C4CC" : "#E5E7EB",
+                animation: flashThumb[p.id] ? "thumb-flash 400ms ease-out" : undefined,
+              }}
             >
               <div className="aspect-[3/2] bg-white relative p-2">
                 <div
@@ -248,7 +267,7 @@ export function Editor() {
                 >
                   LOGO
                 </div>
-                <div className="absolute left-2 right-2 top-7">
+                <div className="absolute right-2 top-7" style={{ left: `${(p.headingX / 720) * 100}%` }}>
                   <div className="text-[8px] font-bold text-gray-900 leading-tight truncate">{p.heading}</div>
                   <div className="text-[6px] text-gray-500 mt-0.5 truncate">{p.subheading}</div>
                 </div>
@@ -262,19 +281,32 @@ export function Editor() {
 
         {/* Canvas area */}
         <main className="flex-1 flex items-center justify-center overflow-auto p-6 relative">
-          {visibleChipPages.length >= 2 && (
+          {visibleChipPages.length >= 2 && !hideApplyBtn && (
             <button
               onClick={applyAll}
-              className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 text-white text-sm font-semibold animate-[chip-in_250ms_ease-out]"
+              disabled={isApplying}
+              className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 text-white text-sm font-semibold"
               style={{
                 background: "#00C4CC",
                 borderRadius: 24,
                 padding: "12px 20px",
                 boxShadow: "0 6px 20px rgba(0,196,204,0.35)",
+                opacity: isApplying ? 0.9 : 1,
+                cursor: isApplying ? "default" : "pointer",
+                animation: hideApplyBtn ? "fade-out-btn 300ms ease-out forwards" : "chip-in 250ms ease-out",
               }}
             >
-              <Sparkles className="w-4 h-4" />
-              Apply all {visibleChipPages.length} suggestions
+              {isApplying ? (
+                <>
+                  <Loader2 className="w-4 h-4" style={{ animation: "spin 800ms linear infinite" }} />
+                  Aligning...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Apply all {visibleChipPages.length} suggestions
+                </>
+              )}
             </button>
           )}
           <Canvas
@@ -289,6 +321,7 @@ export function Editor() {
             onLogoRect={setLogoRect}
             onChipApply={() => applyChip(activeId)}
             onChipIgnore={() => ignoreChip(activeId)}
+            trail={trails[activeId]}
           />
         </main>
 
@@ -338,6 +371,13 @@ export function Editor() {
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#1A1A1A] text-white text-sm rounded-lg px-4 py-3 shadow-lg animate-fade-in max-w-md text-center">
           {toast}
+        </div>
+      )}
+
+      {milestoneToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#1A1A1A] text-white text-sm rounded-lg px-4 py-3 shadow-lg animate-fade-in max-w-md text-center flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-[#00C4CC]" />
+          {milestoneToast}
         </div>
       )}
 
