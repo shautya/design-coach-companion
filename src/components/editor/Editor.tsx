@@ -267,7 +267,7 @@ export function Editor() {
                 >
                   LOGO
                 </div>
-                <div className="absolute right-2 top-7" style={{ left: 8 + (p.headingX / 720) * 100 + "%" as any }}>
+                <div className="absolute right-2 top-7" style={{ left: `${(p.headingX / 720) * 100}%` }}>
                   <div className="text-[8px] font-bold text-gray-900 leading-tight truncate">{p.heading}</div>
                   <div className="text-[6px] text-gray-500 mt-0.5 truncate">{p.subheading}</div>
                 </div>
