@@ -24,7 +24,22 @@ export function Editor() {
   const [gridLocked, setGridLocked] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [logoRect, setLogoRect] = useState<DOMRect | null>(null);
+  const [proBadge, setProBadge] = useState(false);
+  const [showProPopover, setShowProPopover] = useState(false);
   const triggeredRef = useRef(false);
+  const proPopRef = useRef<HTMLDivElement>(null);
+
+  // outside-click for pro popover
+  useEffect(() => {
+    if (!showProPopover) return;
+    const onDown = (e: MouseEvent) => {
+      if (proPopRef.current && !proPopRef.current.contains(e.target as Node)) {
+        setShowProPopover(false);
+      }
+    };
+    window.addEventListener("mousedown", onDown);
+    return () => window.removeEventListener("mousedown", onDown);
+  }, [showProPopover]);
 
   const activePage = pages.find((p) => p.id === activeId)!;
 
