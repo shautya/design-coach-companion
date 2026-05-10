@@ -39,12 +39,18 @@ export function Canvas({
   const [offGridLabel, setOffGridLabel] = useState<{ x: number; y: number } | null>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
   const hadSnappedRef = useRef(page.hadSnapped);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const [headingW, setHeadingW] = useState(0);
 
   // sync when page changes
   useEffect(() => {
     setPos(page.logoPos);
     hadSnappedRef.current = page.hadSnapped;
   }, [page.id]);
+
+  useEffect(() => {
+    if (headingRef.current) setHeadingW(headingRef.current.offsetWidth);
+  }, [page.heading, page.headingX]);
 
   // report logo rect when position/selection changes
   useEffect(() => {
