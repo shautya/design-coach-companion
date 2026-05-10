@@ -83,7 +83,35 @@ export function Editor() {
     setShowTutorial(false);
     setGridLocked(true);
     setToast("You just set up a custom grid system across 3 pages. That's how design teams keep brand decks consistent.");
+    // Pro Mode badge fades in as the toast appears
+    setTimeout(() => setProBadge(true), 200);
+    // Toast fades out at ~4000ms; chips begin appearing as it fades
     setTimeout(() => setToast(null), 4000);
+    // Stagger chips: page1 immediately as toast fades, page2 +100ms, page3 +200ms
+    [1, 2, 3].forEach((id, i) => {
+      setTimeout(() => {
+        setPages((prev) => prev.map((p) => (p.id === id && p.chipState === "hidden" ? { ...p, chipState: "visible" } : p)));
+      }, 3800 + i * 100);
+    });
+  };
+
+  const applyChip = (id: PageId) => {
+    setPages((prev) => prev.map((p) => (p.id === id ? { ...p, headingX: COL1_X, chipState: "applied", showCheck: true } : p)));
+    setTimeout(() => {
+      setPages((prev) => prev.map((p) => (p.id === id ? { ...p, showCheck: false } : p)));
+    }, 700);
+  };
+
+  const ignoreChip = (id: PageId) => {
+    setPages((prev) => prev.map((p) => (p.id === id ? { ...p, chipState: "ignored" } : p)));
+  };
+
+  const visibleChipPages = pages.filter((p) => p.chipState === "visible").map((p) => p.id);
+
+  const applyAll = () => {
+    visibleChipPages.forEach((id, i) => {
+      setTimeout(() => applyChip(id), i * 200);
+    });
   };
 
   const resetDemo = () => {
@@ -95,6 +123,8 @@ export function Editor() {
     setShowTutorial(false);
     setGridLocked(false);
     setToast(null);
+    setProBadge(false);
+    setShowProPopover(false);
     triggeredRef.current = false;
     setActiveId(1);
   };
