@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Sparkles, Check } from "lucide-react";
 import { PageData, SNAP_RADIUS, SNAP_X, SNAP_Y } from "./types";
 
 interface Props {
@@ -10,6 +11,8 @@ interface Props {
   onSnapped: () => void;
   gridLocked: boolean;
   onLogoRect: (rect: DOMRect | null) => void;
+  onChipApply: () => void;
+  onChipIgnore: () => void;
 }
 
 const LOGO_W = 120;
