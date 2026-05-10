@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Undo2, Redo2, ZoomIn, ZoomOut, Share2, Type, Image as ImageIcon,
-  Shapes, LayoutTemplate, Upload, Sparkles, Search,
+  Shapes, LayoutTemplate, Upload, Sparkles, Search, Check,
 } from "lucide-react";
 import { Canvas } from "./Canvas";
 import { CoachCard } from "./CoachCard";
 import { ProModal } from "./ProModal";
 import { TutorialOverlay } from "./TutorialOverlay";
 import { DemoControls } from "./DemoControls";
-import { initialPages, PageData, PageId } from "./types";
+import { COL1_X, initialPages, PageData, PageId } from "./types";
 
 export function Editor() {
   const [pages, setPages] = useState<PageData[]>(initialPages);
@@ -24,7 +24,22 @@ export function Editor() {
   const [gridLocked, setGridLocked] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [logoRect, setLogoRect] = useState<DOMRect | null>(null);
+  const [proBadge, setProBadge] = useState(false);
+  const [showProPopover, setShowProPopover] = useState(false);
   const triggeredRef = useRef(false);
+  const proPopRef = useRef<HTMLDivElement>(null);
+
+  // outside-click for pro popover
+  useEffect(() => {
+    if (!showProPopover) return;
+    const onDown = (e: MouseEvent) => {
+      if (proPopRef.current && !proPopRef.current.contains(e.target as Node)) {
+        setShowProPopover(false);
+      }
+    };
+    window.addEventListener("mousedown", onDown);
+    return () => window.removeEventListener("mousedown", onDown);
+  }, [showProPopover]);
 
   const activePage = pages.find((p) => p.id === activeId)!;
 
@@ -68,7 +83,35 @@ export function Editor() {
     setShowTutorial(false);
     setGridLocked(true);
     setToast("You just set up a custom grid system across 3 pages. That's how design teams keep brand decks consistent.");
+    // Pro Mode badge fades in as the toast appears
+    setTimeout(() => setProBadge(true), 200);
+    // Toast fades out at ~4000ms; chips begin appearing as it fades
     setTimeout(() => setToast(null), 4000);
+    // Stagger chips: page1 immediately as toast fades, page2 +100ms, page3 +200ms
+    [1, 2, 3].forEach((id, i) => {
+      setTimeout(() => {
+        setPages((prev) => prev.map((p) => (p.id === id && p.chipState === "hidden" ? { ...p, chipState: "visible" } : p)));
+      }, 3800 + i * 100);
+    });
+  };
+
+  const applyChip = (id: PageId) => {
+    setPages((prev) => prev.map((p) => (p.id === id ? { ...p, headingX: COL1_X, chipState: "applied", showCheck: true } : p)));
+    setTimeout(() => {
+      setPages((prev) => prev.map((p) => (p.id === id ? { ...p, showCheck: false } : p)));
+    }, 700);
+  };
+
+  const ignoreChip = (id: PageId) => {
+    setPages((prev) => prev.map((p) => (p.id === id ? { ...p, chipState: "ignored" } : p)));
+  };
+
+  const visibleChipPages = pages.filter((p) => p.chipState === "visible").map((p) => p.id);
+
+  const applyAll = () => {
+    visibleChipPages.forEach((id, i) => {
+      setTimeout(() => applyChip(id), i * 200);
+    });
   };
 
   const resetDemo = () => {
@@ -80,6 +123,8 @@ export function Editor() {
     setShowTutorial(false);
     setGridLocked(false);
     setToast(null);
+    setProBadge(false);
+    setShowProPopover(false);
     triggeredRef.current = false;
     setActiveId(1);
   };
@@ -112,6 +157,39 @@ export function Editor() {
           <span className="text-xs text-gray-600 w-10 text-center">100%</span>
           <button className="p-1.5"><ZoomIn className="w-4 h-4 text-gray-600" /></button>
         </div>
+        {proBadge && (
+          <div className="relative" ref={proPopRef}>
+            <button
+              onClick={() => setShowProPopover((v) => !v)}
+              className="flex items-center gap-1 text-white text-[12px] font-semibold mr-1"
+              style={{
+                background: "linear-gradient(135deg, #00C4CC, #008A90)",
+                borderRadius: 16,
+                padding: "6px 12px",
+                animation: "badge-in 300ms ease-out",
+              }}
+            >
+              <Sparkles className="w-3 h-3" />
+              Pro Mode
+            </button>
+            {showProPopover && (
+              <div
+                className="absolute right-0 top-full mt-2 z-50 bg-white rounded-lg border border-gray-200 shadow-lg p-3 w-56 animate-[chip-in_200ms_ease-out]"
+              >
+                {[
+                  "Grid lock active",
+                  "Smart align suggestions",
+                  "Multi-page consistency",
+                ].map((t) => (
+                  <div key={t} className="flex items-center gap-2 py-1 text-[13px] text-gray-800">
+                    <Check className="w-3.5 h-3.5 text-[#00C4CC]" strokeWidth={3} />
+                    {t}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">
           <Share2 className="w-4 h-4" /> Share
         </button>
@@ -183,7 +261,22 @@ export function Editor() {
         </aside>
 
         {/* Canvas area */}
-        <main className="flex-1 flex items-center justify-center overflow-auto p-6">
+        <main className="flex-1 flex items-center justify-center overflow-auto p-6 relative">
+          {visibleChipPages.length >= 2 && (
+            <button
+              onClick={applyAll}
+              className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 text-white text-sm font-semibold animate-[chip-in_250ms_ease-out]"
+              style={{
+                background: "#00C4CC",
+                borderRadius: 24,
+                padding: "12px 20px",
+                boxShadow: "0 6px 20px rgba(0,196,204,0.35)",
+              }}
+            >
+              <Sparkles className="w-4 h-4" />
+              Apply all {visibleChipPages.length} suggestions
+            </button>
+          )}
           <Canvas
             key={activePage.id}
             page={activePage}
@@ -194,6 +287,8 @@ export function Editor() {
             onSnapped={handleSnapped}
             gridLocked={gridLocked}
             onLogoRect={setLogoRect}
+            onChipApply={() => applyChip(activeId)}
+            onChipIgnore={() => ignoreChip(activeId)}
           />
         </main>
 

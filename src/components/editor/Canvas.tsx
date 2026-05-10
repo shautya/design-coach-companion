@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Sparkles, Check } from "lucide-react";
 import { PageData, SNAP_RADIUS, SNAP_X, SNAP_Y } from "./types";
 
 interface Props {
@@ -10,6 +11,8 @@ interface Props {
   onSnapped: () => void;
   gridLocked: boolean;
   onLogoRect: (rect: DOMRect | null) => void;
+  onChipApply: () => void;
+  onChipIgnore: () => void;
 }
 
 const LOGO_W = 120;
@@ -24,6 +27,8 @@ export function Canvas({
   onSnapped,
   gridLocked,
   onLogoRect,
+  onChipApply,
+  onChipIgnore,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
@@ -34,12 +39,18 @@ export function Canvas({
   const [offGridLabel, setOffGridLabel] = useState<{ x: number; y: number } | null>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
   const hadSnappedRef = useRef(page.hadSnapped);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const [headingW, setHeadingW] = useState(0);
 
   // sync when page changes
   useEffect(() => {
     setPos(page.logoPos);
     hadSnappedRef.current = page.hadSnapped;
   }, [page.id]);
+
+  useEffect(() => {
+    if (headingRef.current) setHeadingW(headingRef.current.offsetWidth);
+  }, [page.heading, page.headingX]);
 
   // report logo rect when position/selection changes
   useEffect(() => {
@@ -193,11 +204,73 @@ export function Canvas({
       )}
 
       {/* Text content */}
-      <div className="absolute" style={{ left: 40, top: 140, width: 640 }}>
-        <h1 className="text-4xl font-bold text-gray-900">{page.heading}</h1>
-        <h2 className="text-lg text-gray-500 mt-2">{page.subheading}</h2>
+      <h1
+        ref={headingRef}
+        className="absolute text-4xl font-bold text-gray-900"
+        style={{
+          left: page.headingX,
+          top: 140,
+          transition: "left 300ms ease-in-out",
+        }}
+      >
+        {page.heading}
+      </h1>
+      <div className="absolute" style={{ left: 40, top: 196, width: 640 }}>
+        <h2 className="text-lg text-gray-500">{page.subheading}</h2>
         <p className="text-sm text-gray-600 mt-8 leading-relaxed max-w-md">{page.body}</p>
       </div>
+
+      {/* Smart Align chip */}
+      {page.chipState === "visible" && headingW > 0 && (
+        <div
+          className="absolute z-20 bg-white flex items-center gap-2"
+          style={{
+            left: page.headingX + headingW + 8,
+            top: 152,
+            border: "1px solid #E5E5E5",
+            borderRadius: 8,
+            padding: "8px 12px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+            animation: "chip-in 250ms ease-out both",
+            transition: "left 300ms ease-in-out",
+          }}
+        >
+          <Sparkles className="w-3 h-3 text-[#00C4CC]" />
+          <span className="text-[12px]" style={{ color: "#333" }}>Snap to column 1?</span>
+          <button
+            onClick={onChipApply}
+            className="text-[12px] font-semibold ml-1"
+            style={{ color: "#00C4CC" }}
+          >
+            Apply
+          </button>
+          <button
+            onClick={onChipIgnore}
+            className="text-[12px]"
+            style={{ color: "#999" }}
+          >
+            Ignore
+          </button>
+        </div>
+      )}
+
+      {/* Checkmark on apply */}
+      {page.showCheck && headingW > 0 && (
+        <div
+          className="absolute z-20 pointer-events-none flex items-center justify-center"
+          style={{
+            left: page.headingX + headingW + 8,
+            top: 152,
+            width: 24,
+            height: 24,
+            borderRadius: 999,
+            background: "#00C4CC",
+            animation: "check-pop 700ms ease-out forwards",
+          }}
+        >
+          <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+        </div>
+      )}
     </div>
   );
 }
