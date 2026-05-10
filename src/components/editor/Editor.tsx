@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Undo2, Redo2, ZoomIn, ZoomOut, Share2, Type, Image as ImageIcon,
-  Shapes, LayoutTemplate, Upload, Sparkles, Search,
+  Shapes, LayoutTemplate, Upload, Sparkles, Search, Check,
 } from "lucide-react";
 import { Canvas } from "./Canvas";
 import { CoachCard } from "./CoachCard";
 import { ProModal } from "./ProModal";
 import { TutorialOverlay } from "./TutorialOverlay";
 import { DemoControls } from "./DemoControls";
-import { initialPages, PageData, PageId } from "./types";
+import { COL1_X, initialPages, PageData, PageId } from "./types";
 
 export function Editor() {
   const [pages, setPages] = useState<PageData[]>(initialPages);
