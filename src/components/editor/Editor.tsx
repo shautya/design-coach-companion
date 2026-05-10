@@ -157,6 +157,39 @@ export function Editor() {
           <span className="text-xs text-gray-600 w-10 text-center">100%</span>
           <button className="p-1.5"><ZoomIn className="w-4 h-4 text-gray-600" /></button>
         </div>
+        {proBadge && (
+          <div className="relative" ref={proPopRef}>
+            <button
+              onClick={() => setShowProPopover((v) => !v)}
+              className="flex items-center gap-1 text-white text-[12px] font-semibold mr-1"
+              style={{
+                background: "linear-gradient(135deg, #00C4CC, #008A90)",
+                borderRadius: 16,
+                padding: "6px 12px",
+                animation: "badge-in 300ms ease-out",
+              }}
+            >
+              <Sparkles className="w-3 h-3" />
+              Pro Mode
+            </button>
+            {showProPopover && (
+              <div
+                className="absolute right-0 top-full mt-2 z-50 bg-white rounded-lg border border-gray-200 shadow-lg p-3 w-56 animate-[chip-in_200ms_ease-out]"
+              >
+                {[
+                  "Grid lock active",
+                  "Smart align suggestions",
+                  "Multi-page consistency",
+                ].map((t) => (
+                  <div key={t} className="flex items-center gap-2 py-1 text-[13px] text-gray-800">
+                    <Check className="w-3.5 h-3.5 text-[#00C4CC]" strokeWidth={3} />
+                    {t}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">
           <Share2 className="w-4 h-4" /> Share
         </button>
