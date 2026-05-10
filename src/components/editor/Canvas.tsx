@@ -27,6 +27,8 @@ export function Canvas({
   onSnapped,
   gridLocked,
   onLogoRect,
+  onChipApply,
+  onChipIgnore,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
