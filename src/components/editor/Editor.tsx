@@ -31,7 +31,22 @@ export function Editor() {
   const [flashThumb, setFlashThumb] = useState<Record<PageId, boolean>>({ 1: false, 2: false, 3: false });
   const [isApplying, setIsApplying] = useState(false);
   const [hideApplyBtn, setHideApplyBtn] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [showRecap, setShowRecap] = useState(false);
   const triggeredRef = useRef(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (!bannerDismissed) setShowBanner(true);
+    }, 800);
+    return () => clearTimeout(t);
+  }, []);
+
+  const dismissBanner = () => {
+    setShowBanner(false);
+    setBannerDismissed(true);
+  };
 
   const activePage = pages.find((p) => p.id === activeId)!;
 
