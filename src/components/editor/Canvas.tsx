@@ -52,6 +52,11 @@ export function Canvas({
     hadSnappedRef.current = page.hadSnapped;
   }, [page.id]);
 
+  // Sync logo position when external state changes (e.g. Apply alignment) and not dragging
+  useEffect(() => {
+    if (!dragging) setPos(page.logoPos);
+  }, [page.logoPos.x, page.logoPos.y]);
+
   useEffect(() => {
     if (headingRef.current) setHeadingW(headingRef.current.offsetWidth);
   }, [page.heading, page.headingX]);
