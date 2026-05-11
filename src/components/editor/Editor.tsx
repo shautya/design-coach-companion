@@ -93,7 +93,15 @@ export function Editor() {
           setTrails((t) => ({ ...t, [id]: { fromX, toX, key: Date.now() + id } }));
           setTimeout(() => setTrails((t) => ({ ...t, [id]: null })), 800);
         }
-        return { ...p, headingX: toX, chipState: "applied", showCheck: true };
+        return {
+          ...p,
+          headingX: toX,
+          bodyX: toX,
+          logoPos: { x: toX, y: p.logoPos.y },
+          hadSnapped: false,
+          chipState: "applied",
+          showCheck: true,
+        };
       })
     );
     setTimeout(() => {
