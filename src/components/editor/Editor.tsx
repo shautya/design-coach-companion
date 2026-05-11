@@ -157,6 +157,7 @@ export function Editor() {
     setTimeout(() => {
       setMilestoneToast("All 3 pages aligned. You just saved ~12 minutes.");
       setTimeout(() => setMilestoneToast(null), 5000);
+      setTimeout(() => setShowRecap(true), 3000);
     }, flashStart + 400);
 
     setTimeout(() => {
