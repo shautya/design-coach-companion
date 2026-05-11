@@ -52,6 +52,11 @@ export function Canvas({
     hadSnappedRef.current = page.hadSnapped;
   }, [page.id]);
 
+  // Sync logo position when external state changes (e.g. Apply alignment) and not dragging
+  useEffect(() => {
+    if (!dragging) setPos(page.logoPos);
+  }, [page.logoPos.x, page.logoPos.y]);
+
   useEffect(() => {
     if (headingRef.current) setHeadingW(headingRef.current.offsetWidth);
   }, [page.heading, page.headingX]);
@@ -229,7 +234,7 @@ export function Canvas({
           color: "#333333",
           fontSize: 14,
           fontWeight: 600,
-          transition: snapping ? "left 150ms ease-out, top 150ms ease-out" : undefined,
+          transition: dragging ? undefined : "left 400ms ease-out, top 400ms ease-out",
         }}
       >
         LOGO
@@ -285,7 +290,15 @@ export function Canvas({
       >
         {page.heading}
       </h1>
-      <div className="absolute" style={{ left: 40, top: 196, width: 640 }}>
+      <div
+        className="absolute"
+        style={{
+          left: page.bodyX,
+          top: 196,
+          width: 640,
+          transition: "left 400ms ease-out",
+        }}
+      >
         <h2 className="text-lg text-gray-500">{page.subheading}</h2>
         <p className="text-sm text-gray-600 mt-8 leading-relaxed max-w-md">{page.body}</p>
       </div>
