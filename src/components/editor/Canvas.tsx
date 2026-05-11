@@ -33,6 +33,7 @@ export function Canvas({
   onChipApply,
   onChipIgnore,
   trail,
+  onDragStart,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
