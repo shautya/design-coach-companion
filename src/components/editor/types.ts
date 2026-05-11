@@ -10,6 +10,7 @@ export interface PageData {
   logoPos: { x: number; y: number };
   hadSnapped: boolean;
   headingX: number;
+  bodyX: number;
   chipState: ChipState;
   showCheck: boolean;
 }
