@@ -305,7 +305,33 @@ export function Editor() {
         </aside>
 
         {/* Canvas area */}
-        <main className="flex-1 flex items-center justify-center overflow-auto p-6 relative">
+        <main className="flex-1 flex items-center justify-center overflow-auto p-6 relative bg-[#F5F5F5]">
+          {showBanner && (
+            <div
+              className="absolute top-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 bg-white"
+              style={{
+                border: "1px solid #E5E5E5",
+                borderRadius: 8,
+                padding: "12px 20px",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                animation: "banner-in 400ms ease-out",
+                maxWidth: 560,
+              }}
+            >
+              <span style={{ fontSize: 13, color: "#333" }}>
+                <span className="mr-1">👋</span>
+                This is a Design Coach demo. Try dragging the logo off its snap point 3 times across the pages to trigger the AI.
+              </span>
+              <button
+                onClick={dismissBanner}
+                className="ml-1 text-[14px] leading-none hover:text-gray-700"
+                style={{ color: "#999" }}
+                aria-label="Dismiss"
+              >
+                ✕
+              </button>
+            </div>
+          )}
           {visibleChipPages.length >= 2 && !hideApplyBtn && (
             <button
               onClick={applyAll}
@@ -347,7 +373,50 @@ export function Editor() {
             onChipApply={() => applyChip(activeId)}
             onChipIgnore={() => ignoreChip(activeId)}
             trail={trails[activeId]}
+            onDragStart={() => { if (showBanner) dismissBanner(); }}
           />
+          {showRecap && (
+            <div
+              className="absolute z-30"
+              style={{
+                right: 16,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 280,
+                background: "#fff",
+                border: "1px solid #E5E5E5",
+                borderRadius: 12,
+                padding: 20,
+                boxShadow: "0 8px 24px rgba(0,0,0,0.10)",
+                animation: "recap-in 300ms ease-out",
+              }}
+            >
+              <div style={{ fontSize: 10, fontWeight: 600, color: "#666", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+                What just happened
+              </div>
+              <div style={{ height: 12 }} />
+              <ul className="space-y-2">
+                {[
+                  "Design Coach detected your off-grid behavior",
+                  "You unlocked Pro Mode",
+                  "The AI aligned 3 pages in one tap",
+                  "You saved ~12 minutes of manual work",
+                ].map((t) => (
+                  <li key={t} className="flex items-start gap-2" style={{ fontSize: 13, color: "#333" }}>
+                    <span style={{ width: 6, height: 6, borderRadius: 999, background: "#00C4CC", marginTop: 7, flexShrink: 0 }} />
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+              <div style={{ height: 16 }} />
+              <button
+                onClick={resetDemo}
+                style={{ color: "#00C4CC", fontSize: 13, fontWeight: 600 }}
+              >
+                Reset demo →
+              </button>
+            </div>
+          )}
         </main>
 
         {/* Right properties panel */}
