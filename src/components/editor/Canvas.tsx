@@ -165,12 +165,31 @@ export function Canvas({
 
       <div
         ref={canvasRef}
-        className="relative bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-md"
+        className="relative bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-md overflow-hidden"
         style={{ width: 720, height: 480 }}
         onMouseDown={(e) => {
           if (e.target === e.currentTarget) onSelect();
         }}
       >
+      {/* Accent bar */}
+      <div
+        className="absolute top-0 left-0 right-0 pointer-events-none"
+        style={{ height: 4, background: "linear-gradient(90deg, #00C4CC, #7D2AE8)" }}
+      />
+      {/* Page number */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          right: 24,
+          bottom: 24,
+          fontSize: 11,
+          fontWeight: 500,
+          color: "#999",
+          letterSpacing: "1px",
+        }}
+      >
+        {String(page.id).padStart(2, "0")} / 03
+      </div>
       {/* Grid lines */}
       {gridLocked && (
         <div className="absolute inset-0 pointer-events-none">
