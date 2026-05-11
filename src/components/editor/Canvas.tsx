@@ -77,6 +77,7 @@ export function Canvas({
   const onMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     onSelect();
+    onDragStart?.();
     const rect = logoRef.current!.getBoundingClientRect();
     dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     setDragging(true);
