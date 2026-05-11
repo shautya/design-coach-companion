@@ -290,7 +290,15 @@ export function Canvas({
       >
         {page.heading}
       </h1>
-      <div className="absolute" style={{ left: 40, top: 196, width: 640 }}>
+      <div
+        className="absolute"
+        style={{
+          left: page.bodyX,
+          top: 196,
+          width: 640,
+          transition: "left 400ms ease-out",
+        }}
+      >
         <h2 className="text-lg text-gray-500">{page.subheading}</h2>
         <p className="text-sm text-gray-600 mt-8 leading-relaxed max-w-md">{page.body}</p>
       </div>
