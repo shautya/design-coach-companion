@@ -14,6 +14,7 @@ interface Props {
   onChipApply: () => void;
   onChipIgnore: () => void;
   trail?: { fromX: number; toX: number; key: number } | null;
+  onDragStart?: () => void;
 }
 
 const LOGO_W = 120;
