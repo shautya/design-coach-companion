@@ -276,7 +276,8 @@ export function Editor() {
                 animation: flashThumb[p.id] ? "thumb-flash 400ms ease-out" : undefined,
               }}
             >
-              <div className="aspect-[3/2] bg-white relative p-2">
+              <div className="aspect-[3/2] bg-white relative p-2 overflow-hidden">
+                <div className="absolute top-0 left-0 right-0" style={{ height: 2, background: "linear-gradient(90deg, #00C4CC, #7D2AE8)" }} />
                 <div
                   className="flex items-center justify-center"
                   style={{
