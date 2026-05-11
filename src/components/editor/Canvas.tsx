@@ -14,6 +14,7 @@ interface Props {
   onChipApply: () => void;
   onChipIgnore: () => void;
   trail?: { fromX: number; toX: number; key: number } | null;
+  onDragStart?: () => void;
 }
 
 const LOGO_W = 120;
@@ -32,6 +33,7 @@ export function Canvas({
   onChipApply,
   onChipIgnore,
   trail,
+  onDragStart,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
@@ -75,6 +77,7 @@ export function Canvas({
   const onMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     onSelect();
+    onDragStart?.();
     const rect = logoRef.current!.getBoundingClientRect();
     dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     setDragging(true);
