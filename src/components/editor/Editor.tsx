@@ -181,6 +181,7 @@ export function Editor() {
     setFlashThumb({ 1: false, 2: false, 3: false });
     setIsApplying(false);
     setHideApplyBtn(false);
+    setShowRecap(false);
     triggeredRef.current = false;
     setActiveId(1);
   };
