@@ -234,7 +234,7 @@ export function Canvas({
           color: "#333333",
           fontSize: 14,
           fontWeight: 600,
-          transition: snapping ? "left 150ms ease-out, top 150ms ease-out" : undefined,
+          transition: dragging ? undefined : "left 400ms ease-out, top 400ms ease-out",
         }}
       >
         LOGO
